@@ -1,0 +1,1 @@
+https://stackoverflow.com/questions/30594511/webgl-fragment-shader-for-multiple-light-sources

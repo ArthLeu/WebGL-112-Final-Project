@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+
+<head>
+<title>Final Programming Assignment</title>
+<style>
+    body {
+        background-color: #EEEEEE;
+    }
+    label {
+        white-space: pre;
+    }
+</style>
+
+<!-- vertex shader -->
+<script type="x-shader/x-vertex" id="vshader-source">
+	attribute vec4 a_coords;
+	attribute vec3 a_normal;
+	uniform mat3 normalMatrix;
+	uniform mat4 modelview, projection;
+	
+	varying vec4 normalInterp;
+	varying vec4 vertexPosition;
+	
+	void main(){
+		gl_Position = projection * modelview * a_coords;
+		
+		normalInterp = vec4(normalMatrix * a_normal, 1.0);
+		vertexPosition = modelview * a_coords;
+	}
+		
+</script>
+
+<!-- fragment shader -->
+<script type="x-shader/x-fragment" id="fshader-source">
+    #ifdef GL_FRAGMENT_PRECISION_HIGH
+       precision highp float;
+    #else
+       precision mediump float;
+    #endif
+	
+	varying vec4 normalInterp;
+	varying vec4 vertexPosition;
+	
+	uniform vec3 specularColor;
+	uniform vec4 lightPosition, diffuseColor, lightDirection;
+	
+	uniform int ambient, diffuse, specular, spot;
+	
+	
+	void main(){
+	
+		vec4 normalDir = normalInterp;
+		vec4 lightDir = normalize(lightPosition - vertexPosition);
+		
+		vec4 reflectDir = reflect(-lightDir, normalDir);
+		vec4 viewDir = normalize(-vertexPosition);
+		
+		float K_a = 0.1;
+		float K_d = 0.55;
+		float K_s = 0.1;
+		float specularExponent = 0.8;
+		const int blinn = 1;
+		
+		vec4 ambientVec = K_a * diffuseColor;
+		vec4 diffuseVec = K_d * diffuseColor * max(dot(normalDir,lightDir),0.0);
+		
+		// Phong shading
+		float specAngle = max(dot(reflectDir, viewDir), 0.0);
+		vec3 specularVec = K_s * specularColor * pow(specAngle, specularExponent/4.0);
+		
+		// Blinn-Phong shading (4x specularExponent)
+		vec4 halfDir = normalize(lightDir + viewDir);
+		float blinnAngle = max(dot(halfDir, normalDir), 0.0);
+		vec3 blinnVec = K_s * specularColor * pow(blinnAngle, specularExponent);
+		
+		vec3 combinedVec;
+		if (blinn == 1) combinedVec = blinnVec;
+		else combinedVec = specularVec;
+				
+		gl_FragColor = ambientVec + diffuseVec + vec4(combinedVec, 1.0);
+	}
+
+</script>
+
+<script src="gl-matrix-min.js"></script>
+<script src="trackball-rotator.js"></script>
+<script src="models.js"></script>
+<script src="FNL.js"></script>
+</head>
+
+
+<body onload="init()">
+Name: Anthony Liu<br/>
+Student ID: 79553180<br/>
+
+<p style="width:600px; text-align: left;">
+
+    <label><b>Option:  </b></label>
+    <label><b>Animate</b><input type="checkbox" id="animate"></label><br/>
+
+</p>
+<div id="canvas-holder">
+   <canvas width=700 height=700 id="myGLCanvas" style="background-color:black"></canvas>
+</div>
+
+<p>
+    
+	
+</p>
+
+</body>
+
+
+</html>
+
